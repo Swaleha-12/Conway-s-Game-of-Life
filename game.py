@@ -1,6 +1,118 @@
 import time
 from tkinter import *
 
+import random
+
+from utils import new_array
+from arraystack import ArrayStack
+from base import BaseSet
+
+w = 32
+"""A Set implementation that uses hashing with chaining"""
+
+
+class ChainedSet:
+    def __init__(self, state: [(int, int)]) -> None:
+        self._state = state
+
+    def __iter__(self):
+        for i in self._state:
+            yield i
+
+    def add(self, coord: (int, int)):
+        self._state.append(coord)
+
+    def discard(self, coord: (int, int)):
+        if coord in self._state:
+            self._state.remove(coord)
+
+
+class ChainedDict():
+
+    def __init__(self, iterable=[]):
+        self.d = 1
+        self.t = self._alloc_table((1 << self.d))
+        self.z = self._random_odd_int()
+        self.n = 0
+
+    def _random_odd_int(self):
+        return random.randrange(1 << w) | 1
+
+    def clear(self):
+        self.d = 1
+        self.t = self._alloc_table((1 << self.d))
+        self.n = 0
+
+    def _alloc_table(self, s):
+        return [[] for _ in range(s)]
+
+    def _resize(self):
+        self.d = 1
+        while (2**self.d) <= self.n:
+            self.d += 1
+        self.n = 0
+        old_t = self.t
+        self.t = self._alloc_table(2**self.d)
+        for i in range(len(old_t)):
+            for x in old_t[i]:
+                self.add(x)
+
+    def _hash(self, x):
+        return ((self.z * hash(x)) % (2 ** w)) >> (w-self.d)
+
+    def add(self, x):
+        if self.find(x) is not None:
+            return False
+        if self.n+1 > len(self.t):
+            self._resize()
+        self.t[self._hash(x)].append(x)
+        self.n += 1
+        return True
+
+    def remove(self, x):
+        ell = self.t[self._hash(x)]
+        for y in ell:
+            if y == x:
+                ell.remove_value(y)
+                self.n -= 1
+                if 3*self.n < len(self.t):
+                    self._resize()
+                return y
+        return None
+
+    def find(self, x):
+        for y in self.t[self._hash(x)]:
+            if y == x:
+                return y
+        return None
+
+    def __iter__(self):
+        for ell in self.t:
+            for x in ell:
+                yield x
+
+    def get(self, key, defaultValue) -> int:
+        hashedIndex = self._hash(key)
+        for i in range(len(self.t[hashedIndex])):
+            if self.t[hashedIndex][i][0] == key:
+                return self.t[hashedIndex][i][1]
+        return defaultValue
+
+    def __setitem__(self, key, value):
+        hashedIndex = self._hash(key)
+        for i in range(len(self.t[hashedIndex])):
+            if self.t[hashedIndex][i][0] == key:
+                self.t[hashedIndex][i] = (key, value)
+        self.t[hashedIndex].append((key, value))
+
+    def items(self):
+        final = []
+        for i in self.t:
+            for kv in i:
+                final.append(kv)
+        return final
+
+
 # An implementation of Conway's Game of Life
 #
 # Adapted from code by Abdullah Zafar
@@ -8,7 +120,6 @@ from tkinter import *
 
 class Config:
     """Config class.
-
     Contains game configurations .
     """
 
@@ -23,10 +134,8 @@ class Config:
 
     def __init__(self) -> None:
         """Provides a default configuration.
-
         Args:
         - self: automatic object reference.
-
         Returns:
         none
         """
@@ -50,18 +159,15 @@ class Config:
 
 class Life:
     """Life class.
-
     The state of the game.
     """
 
     def __init__(self, state: [(int, int)], chain: bool = True) -> None:
         """Initializes game state and internal variables.
-
         Args:
         - self: automatic object reference.
         - state: initial congifuration - (x,y) coordinates of live cells
         - chain: controls whether to use chaining (True) or linear probiing (False)
-
         Returns:
         none
         """
@@ -78,12 +184,9 @@ class Life:
 
     def step(self) -> None:
         """One iteration of the game.
-
         Applies game rules on current live cells in order to compute the next state of the game.
-
         Args:
         - self: automatic object reference.
-
         Returns:
         none
         """
@@ -112,10 +215,8 @@ class Life:
 
     def state(self) -> [(int, int)]:
         """Returns the current state of the game.
-
         Args:
         - self: automatic object reference.
-
         Returns:
         Coordinates of live cells .
         """
@@ -126,11 +227,9 @@ class Life:
 class Game:
     def run(life, config) -> None:
         """Runs the game as per config.
-
         Args:
         - life: the instance to run.
         - config: contains game configurations.
-
         Returns:
         nothing.
         """
