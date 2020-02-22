@@ -4,6 +4,73 @@ from tkinter import *
 # An implementation of Conway's Game of Life
 #
 # Adapted from code by Abdullah Zafar
+import random
+
+w = 32
+
+
+class ChainedSet:
+    def __init__(self, iterable=[]):
+        self.d = 1
+        self.t = self._alloc_table((1 << self.d))
+        self.z = self._random_odd_int()
+        self.n = 0
+
+    def _random_odd_int(self):
+        return random.randrange(2**w) | 1
+
+    def clear(self):
+        self.d = 1
+        self.t = self._alloc_table((1 << self.d))
+        self.n = 0
+
+    def _alloc_table(self, s):
+        return [[] for _ in range(s)]
+
+    def _resize(self):
+        self.d = 1
+        while 2**self.d <= self.n:
+            self.d += 1
+        self.n = 0
+        old_t = self.t
+        self.t = self._alloc_table(2**self.d)
+        for i in range(len(old_t)):
+            for x in old_t[i]:
+                self.add(x)
+
+    def _hash(self, x):
+        return ((self.z * hash(x)) % (2**w)) >> (w-self.d)
+
+    def add(self, x):
+        if self.find(x) is not None:
+            return False
+        if self.n+1 > len(self.t):
+            self._resize()
+        self.t[self._hash(x)].append(x)
+        self.n += 1
+        return True
+
+    def remove(self, x):
+        L = self.t[self._hash(x)]
+        for y in L:
+            if y == x:
+                L.remove_value(y)
+                self.n -= 1
+                if 3*self.n < len(self.t):
+                    self._resize()
+                return y
+        return None
+
+    def find(self, x):
+        for y in self.t[self._hash(x)]:
+            if y == x:
+                return y
+        return None
+
+    def __iter__(self):
+        for L in self.t:
+            for x in L:
+                yield x
 
 
 class Config:
@@ -124,7 +191,7 @@ class Life:
 
 
 class Game:
-    def run(life, config) -> None:
+    def run(life: Life, config) -> None:
         """Runs the game as per config.
 
         Args:
