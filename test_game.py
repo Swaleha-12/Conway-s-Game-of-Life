@@ -35,13 +35,26 @@ def fetch_testcases(path: str) -> [Case]:
 cases = fetch_testcases(casefile)
 
 
-def test():
+def test_chained():
     config = Config()
     config.animate = False
     for case in cases:
         config.rounds = case.steps
         config.start = case.start
-        life = Life(config.start)
+        life = Life(config.start, chain=True)
+        Game.run(life, config)
+        assert sorted(case.stop) == sorted(life.state()),\
+            f'reference: {sorted(case.stop)} does not match '\
+            f'generated: {sorted(life.state())}'
+
+
+def test_linear():
+    config = Config()
+    config.animate = False
+    for case in cases:
+        config.rounds = case.steps
+        config.start = case.start
+        life = Life(config.start, chain=False)
         Game.run(life, config)
         assert sorted(case.stop) == sorted(life.state()),\
             f'reference: {sorted(case.stop)} does not match '\
