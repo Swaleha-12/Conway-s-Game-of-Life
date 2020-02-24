@@ -1,5 +1,7 @@
 import time
 from tkinter import *
+import copy
+import math
 
 import random
 
@@ -1179,15 +1181,22 @@ class ChainedSet():
         return [[] for _ in range(s)]
 
     def _resize(self):
-        self.d = 1
-        while (2**self.d) <= self.n:
-            self.d += 1
+        temp = copy.copy(self.t)
+        self.t = []
+        self.q = self.n
+        if self.n > 0:
+
+            self.size = int(math.log2(3*self.n))
+        if self.size < 2:
+            self.size = 2
+
+        for i in range(3**self.size):
+            self.t.append([])
+
         self.n = 0
-        old_t = self.t
-        self.t = self._alloc_table(2**self.d)
-        for i in range(len(old_t)):
-            for x in old_t[i]:
-                self.add(x)
+        for i in temp:
+            for coord in i:
+                self.add(coord)
 
     def _hash(self, x):
         return ((self.z * hash(x)) % (2 ** w)) >> (w-self.d)
@@ -1244,15 +1253,22 @@ class ChainedDict():
         return [[] for _ in range(s)]
 
     def _resize(self):
-        self.d = 1
-        while (2**self.d) <= self.n:
-            self.d += 1
+        temp = copy.copy(self.t)
+        self.t = []
+        self.q = self.n
+        if self.n > 0:
+
+            self.size = int(math.log2(3*self.n))
+        if self.size < 2:
+            self.size = 2
+
+        for i in range(3**self.size):
+            self.t.append([])
+
         self.n = 0
-        old_t = self.t
-        self.t = self._alloc_table(2**self.d)
-        for i in range(len(old_t)):
-            for x in old_t[i]:
-                self.add(x)
+        for i in temp:
+            for coord in i:
+                self.add(coord)
 
     def _hash(self, x):
         return ((self.z * hash(x)) % (2 ** w)) >> (w-self.d)
