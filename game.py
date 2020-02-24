@@ -139,7 +139,7 @@ def hashFunction(randomInt, coord, d):
 """A Set implementation that uses hashing with chaining"""
 
 
-class ChainedSet():
+class ChainedSet:
     def __init__(self, state, iterable=[]):
         self.d = 1
         self.t = self._alloc_table((1 << self.d))
@@ -155,18 +155,13 @@ class ChainedSet():
         return [[] for _ in range(s)]
 
     def _resize(self):
-        temp = copy.copy(self.t)
+        temp = self.t
         self.t = []
-        self.q = self.n
         if self.n > 0:
-
-            self.size = int(math.log2(3*self.n))
-        if self.size < 2:
-            self.size = 2
-
-        for i in range(3**self.size):
-            self.t.append([])
-
+            self.d = int(math.log2(3*self.n))
+        if self.d < 1:
+            self.d = 1
+        self.t = self._alloc_table(2**self.d)
         self.n = 0
         for i in temp:
             for coord in i:
@@ -178,17 +173,17 @@ class ChainedSet():
     def add(self, x):
         if self.find(x) is not None:
             return False
-        if self.n+1 > len(self.t):
+        if self.n+1 > 2**self.d:
             self._resize()
         self.t[self._hash(x)].append(x)
         self.n += 1
         return True
 
     def discard(self, x):
-        ell = self.t[self._hash(x)]
-        for y in ell:
+        index = self._hash(x)
+        for y in self.t[index]:
             if y == x:
-                ell.remove(y)
+                self.t[index].remove(y)
                 self.n -= 1
                 if 3*self.n < len(self.t):
                     self._resize()
@@ -227,49 +222,32 @@ class ChainedDict():
         return [[] for _ in range(s)]
 
     def _resize(self):
-        temp = copy.copy(self.t)
-        self.t = []
-        self.q = self.n
+        old_t = self.t
         if self.n > 0:
-
-            self.size = int(math.log2(3*self.n))
-        if self.size < 2:
-            self.size = 2
-
-        for i in range(3**self.size):
-            self.t.append([])
-
+            self.d = int(math.log2(3*self.n))
+        if self.d < 1:
+            self.d = 1
+        self.t = self._alloc_table(2**self.d)
         self.n = 0
-        for i in temp:
-            for coord in i:
-                self.add(coord)
+        for i in old_t:
+            for key, neigh in i:
+                self.add((key, neigh))
 
     def _hash(self, x):
         return ((self.z * hash(x)) % (2 ** w)) >> (w-self.d)
 
-    def add(self, x):
+    def add(self, x, neighbour=0):
         if self.find(x) is not None:
             return False
         if self.n+1 > len(self.t):
             self._resize()
-        self.t[self._hash(x)].append(x)
+        self.t[self._hash(x)].append((x, neighbour))
         self.n += 1
         return True
 
-    def remove(self, x):
-        ell = self.t[self._hash(x)]
-        for y in ell:
-            if y == x:
-                ell.remove_value(y)
-                self.n -= 1
-                if 3*self.n < len(self.t):
-                    self._resize()
-                return y
-        return None
-
     def find(self, x):
         for y in self.t[self._hash(x)]:
-            if y == x:
+            if y[0] == x:
                 return y
         return None
 
@@ -283,20 +261,20 @@ class ChainedDict():
         for i in range(len(self.t[hashedIndex])):
             if self.t[hashedIndex][i][0] == key:
                 return self.t[hashedIndex][i][1]
+        self.add(key)
         return defaultValue
 
     def __setitem__(self, key, value):
-        hashedIndex = self._hash(key)
-        for i in range(len(self.t[hashedIndex])):
-            if self.t[hashedIndex][i][0] == key:
-                self.t[hashedIndex][i] = (key, value)
-        self.t[hashedIndex].append((key, value))
+        index = self._hash(key)
+        for i in range(len(self.t[index])):
+            if self.t[index][i][0] == key:
+                self.t[index][i] = (key, value)
 
     def items(self):
         final = []
         for i in self.t:
-            for kv in i:
-                final.append(kv)
+            for j in i:
+                final.append(j)
         return final
 
 
