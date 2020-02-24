@@ -157,8 +157,7 @@ class ChainedSet:
     def _resize(self):
         temp = self.t
         self.t = []
-        if self.n > 0:
-            self.d = int(math.log2(3*self.n))
+        self.d = int(math.log2(3*self.n))
         if self.d < 1:
             self.d = 1
         self.t = self._alloc_table(2**self.d)
@@ -171,7 +170,7 @@ class ChainedSet:
         return ((self.z * hash(x)) % (2 ** w)) >> (w-self.d)
 
     def add(self, x):
-        if self.find(x) is not None:
+        if self.find(x) is not None and self.find(x) != []:
             return False
         if self.n+1 >= 2**self.d:
             self._resize()
@@ -185,7 +184,7 @@ class ChainedSet:
             if y == x:
                 self.t[index].remove(y)
                 self.n -= 1
-                if 3*self.n < 2**self.d:
+                if (3*self.n) < 2**self.d:
                     self._resize()
                 return y
         return None
@@ -254,8 +253,7 @@ class ChainedDict():
         for ell in self.t:
             for x in ell:
                 yield x
-    def __getitem__(self, key):
-        return self.get(key,0)
+                
     def get(self, key, defaultValue) -> int:
         hashedIndex = self._hash(key)
         for i in range(len(self.t[hashedIndex])):
@@ -271,11 +269,9 @@ class ChainedDict():
                 self.t[index][i] = (key, value)
 
     def items(self):
-        final = []
         for i in self.t:
             for j in i:
-                final.append(j)
-        return final
+                yield j
 
 
 # An implementation of Conway's Game of Life
