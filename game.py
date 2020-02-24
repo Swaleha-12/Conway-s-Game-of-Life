@@ -140,7 +140,7 @@ def hashFunction(randomInt, coord, d):
 
 
 class ChainedSet:
-    def __init__(self, state, iterable=[]):
+    def __init__(self, state):
         self.d = 1
         self.t = self._alloc_table((1 << self.d))
         self.z = self._random_odd_int()
@@ -173,7 +173,7 @@ class ChainedSet:
     def add(self, x):
         if self.find(x) is not None:
             return False
-        if self.n+1 > 2**self.d:
+        if self.n+1 >= 2**self.d:
             self._resize()
         self.t[self._hash(x)].append(x)
         self.n += 1
@@ -185,7 +185,7 @@ class ChainedSet:
             if y == x:
                 self.t[index].remove(y)
                 self.n -= 1
-                if 3*self.n < len(self.t):
+                if 3*self.n < 2**self.d:
                     self._resize()
                 return y
         return None
@@ -223,8 +223,7 @@ class ChainedDict():
 
     def _resize(self):
         old_t = self.t
-        if self.n > 0:
-            self.d = int(math.log2(3*self.n))
+        self.d = int(math.log2(3*self.n))
         if self.d < 1:
             self.d = 1
         self.t = self._alloc_table(2**self.d)
@@ -239,7 +238,7 @@ class ChainedDict():
     def add(self, x, neighbour=0):
         if self.find(x) is not None:
             return False
-        if self.n+1 > len(self.t):
+        if self.n+1 >= len(self.t):
             self._resize()
         self.t[self._hash(x)].append((x, neighbour))
         self.n += 1
