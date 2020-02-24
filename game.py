@@ -11,75 +11,76 @@ w = 32
 '''Linear Probing Implementation'''
 
 
+
 class LinearDict:
     def __init__(self):
         self.randomInt = random.randrange(1, 101, 2)
-        self.width = 1
-        self.data = 0
-        self.nonNone = 0
-        self.table = [()] * 2**self.width
+        self.w = 1
+        self.d = 0
+        self.q = 0
+        self.t = [()] * 2**self.w
 
     def hashFunction(self, randomInt, coord, d):
         return ((randomInt*hash(coord)) % 2**(32)) >> (32 - d)
 
     def __setitem__(self, key, value):
-        if 2 * (self.nonNone + 1) > 2**self.width:
+        if 2 * (self.q + 1) > 2**self.w:
             self.resize()
-        hashIndex = self.hashFunction(self.randomInt, key, self.width)
-        while self.table[hashIndex] != () and self.table[hashIndex] != "" and self.table[hashIndex][0] != key:
-            hashIndex = (hashIndex + 1) % 2**self.width
-        if self.table[hashIndex] == ():
-            self.nonNone += 1
-            self.data += 1
-        self.table[hashIndex] = (key, value)
+        hashIndex = self.hashFunction(self.randomInt, key, self.w)
+        while self.t[hashIndex] != () and self.t[hashIndex] != "" and self.t[hashIndex][0] != key:
+            hashIndex = (hashIndex + 1) % 2**self.w
+        if self.t[hashIndex] == ():
+            self.q += 1
+            self.d += 1
+        self.t[hashIndex] = (key, value)
 
     def get(self, coord, defaultVal):
-        hashIndex = self.hashFunction(self.randomInt, coord, self.width)
-        while self.table[hashIndex] != ():
-            if coord == self.table[hashIndex][0]:
-                return self.table[hashIndex][1]
-            hashIndex = (hashIndex + 1) % 2**self.width
+        hashIndex = self.hashFunction(self.randomInt, coord, self.w)
+        while self.t[hashIndex] != ():
+            if coord == self.t[hashIndex][0]:
+                return self.t[hashIndex][1]
+            hashIndex = (hashIndex + 1) % 2**self.w
         return defaultVal
 
     def items(self):
-        for i in self.table:
+        for i in self.t:
             if len(i) != 0:
                 yield i
 
     def __iter__(self):
-        for i in self.table:
+        for i in self.t:
             if len(i) != 0:
                 yield i
 
     def clear(self):
         self.randomInt = random.randrange(1, 101, 2)
-        self.width = 1
-        self.data = 0
-        self.nonNone = 0
-        self.table = [()] * 2**self.width
+        self.w = 1
+        self.d = 0
+        self.q = 0
+        self.t = [()] * 2**self.w
 
     def resize(self):
-        self.width = int(math.log2(3*self.data))
-        self.width += 1
-        table = self.table
-        self.table = [()] * 2**self.width
-        self.nonNone = self.data
-        for coord in table:
+        self.w = int(math.log2(3*self.d))
+        self.w += 1
+        t = self.t
+        self.t = [()] * 2**self.w
+        self.q = self.d
+        for coord in t:
             if coord != "" and coord != ():
                 hashIndex = self.hashFunction(
-                    self.randomInt, coord[0], self.width)
-                while self.table[hashIndex] != ():
-                    hashIndex = (hashIndex + 1) % 2**self.width
-                self.table[hashIndex] = coord
+                    self.randomInt, coord[0], self.w)
+                while self.t[hashIndex] != ():
+                    hashIndex = (hashIndex + 1) % 2**self.w
+                self.t[hashIndex] = coord
 
 
 class LinearSet:
     def __init__(self, state):
         self.randomInt = random.randrange(1, 101, 2)
-        self.width = 1
-        self.data = 0
-        self.nonNone = 0
-        self.table = [None] * 2**self.width
+        self.w = 1
+        self.d = 0
+        self.q = 0
+        self.t = [None] * 2**self.w
         for i in state:
             self.add(i)
 
@@ -89,55 +90,55 @@ class LinearSet:
     def add(self, coord):
         if self.find(coord) != None:
             return False
-        if 2 * (self.nonNone + 1) > 2**self.width:
+        if 2 * (self.q + 1) > 2**self.w:
             self.resize()
-        hashIndex = self.hashFunction(self.randomInt, coord, self.width)
-        while self.table[hashIndex] != None and self.table[hashIndex] != "":
-            hashIndex = (hashIndex + 1) % 2**self.width
-        if self.table[hashIndex] == None:
-            self.nonNone += 1
-        self.data += 1
-        self.table[hashIndex] = coord
+        hashIndex = self.hashFunction(self.randomInt, coord, self.w)
+        while self.t[hashIndex] != None and self.t[hashIndex] != "":
+            hashIndex = (hashIndex + 1) % 2**self.w
+        if self.t[hashIndex] == None:
+            self.q += 1
+        self.d += 1
+        self.t[hashIndex] = coord
         return True
 
     def find(self, coord):
-        hashIndex = self.hashFunction(self.randomInt, coord, self.width)
-        while self.table[hashIndex] != None:
-            if self.table[hashIndex] != "" and coord == self.table[hashIndex]:
-                return self.table[hashIndex]
-            hashIndex = (hashIndex + 1) % 2**self.width
+        hashIndex = self.hashFunction(self.randomInt, coord, self.w)
+        while self.t[hashIndex] != None:
+            if self.t[hashIndex] != "" and coord == self.t[hashIndex]:
+                return self.t[hashIndex]
+            hashIndex = (hashIndex + 1) % 2**self.w
 
     def discard(self, coord):
-        hashIndex = self.hashFunction(self.randomInt, coord, self.width)
-        while self.table[hashIndex] != None:
-            y = self.table[hashIndex]
+        hashIndex = self.hashFunction(self.randomInt, coord, self.w)
+        while self.t[hashIndex] != None:
+            y = self.t[hashIndex]
             if y != "" and coord == y:
-                self.table[hashIndex] = ""
-                self.data -= 1
-                if 8 * self.data < 2**self.width:
+                self.t[hashIndex] = ""
+                self.d -= 1
+                if 8 * self.d < 2**self.w:
                     self.resize()
                 return y
-            hashIndex = (hashIndex + 1) % 2**self.width
+            hashIndex = (hashIndex + 1) % 2**self.w
         return None
 
     def __iter__(self):
-        for i in self.table:
+        for i in self.t:
             if i != None and i != "":
                 yield i
 
     def resize(self):
-        self.width = int(math.log2(3*self.data))
-        self.width += 1
-        table = self.table
-        self.table = [None] * 2**self.width
-        self.nonNone = self.data
-        for coord in table:
+        self.w = int(math.log2(3*self.d))
+        self.w += 1
+        t = self.t
+        self.t = [None] * 2**self.w
+        self.q = self.d
+        for coord in t:
             if coord != "" and coord != None:
                 hashIndex = self.hashFunction(
-                    self.randomInt, coord, self.width)
-                while self.table[hashIndex] != None:
-                    hashIndex = (hashIndex + 1) % 2**self.width
-                self.table[hashIndex] = coord
+                    self.randomInt, coord, self.w)
+                while self.t[hashIndex] != None:
+                    hashIndex = (hashIndex + 1) % 2**self.w
+                self.t[hashIndex] = coord
 
 
 """A Set implementation that uses hashing with chaining"""
