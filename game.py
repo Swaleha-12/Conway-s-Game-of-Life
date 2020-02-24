@@ -19,10 +19,13 @@ class LinearDict:
         self.nonNone = 0
         self.table = [()] * 2**self.width
 
+    def hashFunction(self, randomInt, coord, d):
+        return ((randomInt*hash(coord)) % 2**(32)) >> (32 - d)
+
     def __setitem__(self, key, value):
         if 2 * (self.nonNone + 1) > 2**self.width:
             self.resize()
-        hashIndex = hashFunction(self.randomInt, key, self.width)
+        hashIndex = self.hashFunction(self.randomInt, key, self.width)
         while self.table[hashIndex] != () and self.table[hashIndex] != "" and self.table[hashIndex][0] != key:
             hashIndex = (hashIndex + 1) % 2**self.width
         if self.table[hashIndex] == ():
@@ -31,7 +34,7 @@ class LinearDict:
         self.table[hashIndex] = (key, value)
 
     def get(self, coord, defaultVal):
-        hashIndex = hashFunction(self.randomInt, coord, self.width)
+        hashIndex = self.hashFunction(self.randomInt, coord, self.width)
         while self.table[hashIndex] != ():
             if coord == self.table[hashIndex][0]:
                 return self.table[hashIndex][1]
@@ -63,7 +66,8 @@ class LinearDict:
         self.nonNone = self.data
         for coord in table:
             if coord != "" and coord != ():
-                hashIndex = hashFunction(self.randomInt, coord[0], self.width)
+                hashIndex = self.hashFunction(
+                    self.randomInt, coord[0], self.width)
                 while self.table[hashIndex] != ():
                     hashIndex = (hashIndex + 1) % 2**self.width
                 self.table[hashIndex] = coord
@@ -79,12 +83,15 @@ class LinearSet:
         for i in state:
             self.add(i)
 
+    def hashFunction(self, randomInt, coord, d):
+        return ((randomInt*hash(coord)) % 2**(32)) >> (32 - d)
+
     def add(self, coord):
         if self.find(coord) != None:
             return False
         if 2 * (self.nonNone + 1) > 2**self.width:
             self.resize()
-        hashIndex = hashFunction(self.randomInt, coord, self.width)
+        hashIndex = self.hashFunction(self.randomInt, coord, self.width)
         while self.table[hashIndex] != None and self.table[hashIndex] != "":
             hashIndex = (hashIndex + 1) % 2**self.width
         if self.table[hashIndex] == None:
@@ -94,14 +101,14 @@ class LinearSet:
         return True
 
     def find(self, coord):
-        hashIndex = hashFunction(self.randomInt, coord, self.width)
+        hashIndex = self.hashFunction(self.randomInt, coord, self.width)
         while self.table[hashIndex] != None:
             if self.table[hashIndex] != "" and coord == self.table[hashIndex]:
                 return self.table[hashIndex]
             hashIndex = (hashIndex + 1) % 2**self.width
 
     def discard(self, coord):
-        hashIndex = hashFunction(self.randomInt, coord, self.width)
+        hashIndex = self.hashFunction(self.randomInt, coord, self.width)
         while self.table[hashIndex] != None:
             y = self.table[hashIndex]
             if y != "" and coord == y:
@@ -126,14 +133,82 @@ class LinearSet:
         self.nonNone = self.data
         for coord in table:
             if coord != "" and coord != None:
-                hashIndex = hashFunction(self.randomInt, coord, self.width)
+                hashIndex = self.hashFunction(
+                    self.randomInt, coord, self.width)
                 while self.table[hashIndex] != None:
                     hashIndex = (hashIndex + 1) % 2**self.width
                 self.table[hashIndex] = coord
 
 
-def hashFunction(randomInt, coord, d):
-    return ((randomInt*hash(coord)) % 2**(32)) >> (32 - d)
+"""A Set implementation that uses hashing with chaining"""
+
+
+class ChainedSet():
+    def __init__(self, state, iterable=[]):
+        self.d = 1
+        self.t = self._alloc_table((1 << self.d))
+        self.z = self._random_odd_int()
+        self.n = 0
+        for i in state:
+            self.add(i)
+
+    def _random_odd_int(self):
+        return random.randrange(1 << w) | 1
+
+    def _alloc_table(self, s):
+        return [[] for _ in range(s)]
+
+    def _resize(self):
+        temp = copy.copy(self.t)
+        self.t = []
+        self.q = self.n
+        if self.n > 0:
+
+            self.size = int(math.log2(3*self.n))
+        if self.size < 2:
+            self.size = 2
+
+        for i in range(3**self.size):
+            self.t.append([])
+
+        self.n = 0
+        for i in temp:
+            for coord in i:
+                self.add(coord)
+
+    def _hash(self, x):
+        return ((self.z * hash(x)) % (2 ** w)) >> (w-self.d)
+
+    def add(self, x):
+        if self.find(x) is not None:
+            return False
+        if self.n+1 > len(self.t):
+            self._resize()
+        self.t[self._hash(x)].append(x)
+        self.n += 1
+        return True
+
+    def discard(self, x):
+        ell = self.t[self._hash(x)]
+        for y in ell:
+            if y == x:
+                ell.remove(y)
+                self.n -= 1
+                if 3*self.n < len(self.t):
+                    self._resize()
+                return y
+        return None
+
+    def find(self, x):
+        for y in self.t[self._hash(x)]:
+            if y == x:
+                return y
+        return None
+
+    def __iter__(self):
+        for ell in self.t:
+            for x in ell:
+                yield x
 
 
 """A Set implementation that uses hashing with chaining"""
