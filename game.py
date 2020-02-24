@@ -254,7 +254,8 @@ class ChainedDict():
         for ell in self.t:
             for x in ell:
                 yield x
-
+    def __getitem__(self, key):
+        return self.get(key,0)
     def get(self, key, defaultValue) -> int:
         hashedIndex = self._hash(key)
         for i in range(len(self.t[hashedIndex])):
